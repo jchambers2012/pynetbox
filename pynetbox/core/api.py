@@ -15,12 +15,12 @@ limitations under the License.
 """
 
 import requests
-
+import time
+import logging
 from pynetbox.core.app import App, PluginsApp
 from pynetbox.core.query import Request
 from pynetbox.core.response import Record
-
-
+logger = logging.getLogger(__name__)
 class Api:
     """The API object is the point of entry to pynetbox.
 
@@ -88,6 +88,7 @@ class Api:
         self.vpn = App(self, "vpn")
         self.wireless = App(self, "wireless")
         self.plugins = PluginsApp(self)
+        self.has_branching = None
 
     @property
     def version(self):
@@ -167,6 +168,10 @@ class Api:
             token=self.token,
             http_session=self.http_session,
         ).get_status()
+        if "netbox_branching" in status:
+            self.has_branching = True
+        else:
+            self.has_branching = False
         return status
 
     def create_token(self, username, password):
@@ -207,3 +212,57 @@ class Api:
         # object details will fail
         self.token = resp["key"]
         return Record(resp, self, None)
+
+    def branch_set(self, branch_name:str,create:bool=True,blocking:bool=True):
+
+        if self.has_branching == None:
+            # Check if the NetBox instance has the branching plugin
+            self.status()
+        if self.has_branching:
+            #Check if the branch exists
+            branch = self.plugins.branching.branches.get(name=branch_name)
+            if not branch and create:
+                #Create the branch if it doesn't exist
+                branch = self.plugins.branching.branches.create(
+                    name=branch_name  , status="new"
+                )
+            #Check if the branch is ready
+            branch_ready = self.branch_ready(branch.schema,blocking=blocking)
+            #Activate the branch
+            if branch_ready:
+                return self.branch_activate(branch.schema)
+            return False
+        else:
+            raise AttributeError("Branching Plugin is not found NetBox")
+    def branch_ready(self,branch_schema:str,blocking:bool=True,retry:int=10,wait:int=10):
+
+        if self.has_branching == None:
+            self.status()
+        if self.has_branching:
+            i = 0
+            branch_ready = False
+            while not branch_ready and i < retry:
+                try:
+                    branch_test = self.plugins.branching.branches.get(
+                        schema=branch_schema
+                    )
+                    if branch_test.status.value == "ready":
+                        branch_ready = True
+                except Exception as e:
+                    logger.debug(f"{e}")
+                i += 1
+                time.sleep(wait)
+                if not blocking:
+                    break
+            return branch_ready
+        else:
+            raise AttributeError("Branching Plugin is not found NetBox")
+    def branch_activate(self, branch_schema:str):
+
+        if self.has_branching == None:
+            self.status()
+        if self.has_branching:
+            self.http_session.headers["X-NetBox-Branch"] = branch_schema
+            return True
+        else:
+            raise AttributeError("Branching Plugin is not found NetBox")

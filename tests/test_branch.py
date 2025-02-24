@@ -60,13 +60,13 @@ class ApiBranchingTestCase(unittest.TestCase):
         api.status()
         self.assertFalse(api.has_branching)
         with self.assertRaises(AttributeError) as e:
-            api.branch_set(branch="test")
+            api.branch_set("test")
         self.assertEqual(str(e.exception), "Branching Plugin is not found NetBox")
         with self.assertRaises(AttributeError) as e:
-            api.branch_ready(branch_schema="test")
+            api.branch_ready("test")
         self.assertEqual(str(e.exception), "Branching Plugin is not found NetBox")
         with self.assertRaises(AttributeError) as e:
-            api.branch_activate(branch_schema="test")
+            api.branch_activate("test")
         self.assertEqual(str(e.exception), "Branching Plugin is not found NetBox")
 
     def test_api_branch_activate(self):

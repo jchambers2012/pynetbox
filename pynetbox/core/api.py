@@ -214,7 +214,6 @@ class Api:
         return Record(resp, self, None)
 
     def branch_set(self, branch_name:str,create:bool=True,blocking:bool=True):
-
         if self.has_branching == None:
             # Check if the NetBox instance has the branching plugin
             self.status()
@@ -234,8 +233,8 @@ class Api:
             return False
         else:
             raise AttributeError("Branching Plugin is not found NetBox")
-    def branch_ready(self,branch_schema:str,blocking:bool=True,retry:int=10,wait:int=10):
 
+    def branch_ready(self,branch_schema:str,blocking:bool=True,retry:int=10,wait:int=10):
         if self.has_branching == None:
             self.status()
         if self.has_branching:
@@ -257,8 +256,8 @@ class Api:
             return branch_ready
         else:
             raise AttributeError("Branching Plugin is not found NetBox")
+        
     def branch_activate(self, branch_schema:str):
-
         if self.has_branching == None:
             self.status()
         if self.has_branching:

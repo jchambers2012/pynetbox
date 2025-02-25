@@ -52,7 +52,7 @@ class ApiBranchingTestCase(unittest.TestCase):
         "requests.sessions.Session.get",
         return_value=ResponseMissingBranching(),
     )
-    def test_api_has_branching(self, *_):
+    def test_api_missing_branching(self, *_):
         api = pynetbox.api(
             host,
         )

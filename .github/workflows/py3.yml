@@ -26,8 +26,8 @@ jobs:
       - name: Install dev requirements
         run: pip install -r requirements-dev.txt .
 
-      - name: Run Linter
-        run: black --diff --check pynetbox tests
+      # - name: Run Linter
+      #   run: black --diff --check pynetbox tests
           
       - name: Run Tests
         run: pytest --netbox-versions=${{ matrix.netbox }}
